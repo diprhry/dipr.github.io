@@ -1,0 +1,143 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta name="apple-mobile-web-app-capable" content="yes"> 
+	<meta name="mobile-web-app-capable" content="yes">
+
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<title>Satat Parchar</title>
+	<link rel="manifest" href="manifest.json">
+	<style type="text/css">
+		body{ 
+			font-size:1.5em;
+			line-height:1.5em;
+		}
+	</style>
+	<script language="javascript">
+		function initGeolocation()
+		{
+			//document.getElementById('imgReload').src = "images/loading.gif";
+			if (navigator && navigator.geolocation)
+				navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+			else
+				alert('Geolocation is not supported on this device.');
+		}
+		function errorCallback() {}
+		 
+		function successCallback(position)
+		{
+			document.getElementById('dsr_location').value= position.coords.latitude + ',' + position.coords.longitude;
+			//document.getElementById('imgReload').src = "images/refresh.png";
+		}
+
+		function bodyonload()
+		{
+			// if(document.getElementById('dsr_location').value.length ==0)
+				// initGeolocation();
+		}
+		function openGoogleMap(quality)
+		{
+			if(quality==0)
+				window.open("https://maps.google.com/maps/api/staticmap?zoom=15&size=512x512&maptype=roadmap&sensor=false&center="+document.getElementById('dsr_location').value+"&markers="+document.getElementById('dsr_location').value);
+			else
+				window.open("https://maps.google.com/maps?z=12&t=m&q=loc:"+document.getElementById('dsr_location').value);
+		}
+	</script>
+</head>
+<body onLoad="javascript:bodyonload()">
+	<div class="container-fluid">
+		<br/><br/>
+		<form method="post" enctype="multipart/form-data">
+			<?php
+				$db = new SQLite3('sp.db');
+				if (!$db) die ("Cannot Open Database");
+				
+				
+				$nearlocs = $db->query("SELECT * FROM locations WHERE loc_lat LIKE '30.7386%' AND loc_long LIKE '76.7853%' LIMIT 3") or die('Query failed');
+				
+				while ($loc = $nearlocs->fetchArray())
+				{
+					echo "\n &nbsp; &nbsp; &nbsp; <input type='radio' name='location' value='{$loc['loc_id']}'> &nbsp; &nbsp; {$loc['loc_name']}</input><br/>";
+				}
+
+			?>		
+<input type="text" style="display:block;" id="dsr_location" name="dsr_location" value="" />
+
+
+
+<img id="imgReload" width=25 src="" onClick="javascript:initGeolocation()" />
+<img width=25 src="" onClick="openGoogleMap(0)" /> <img width=25 src="" onClick="openGoogleMap(1)" />
+
+<!--
+<br/><a href='https://davidwalsh.name/demo/camera.php' class="btn btn-outline-info">One</a>
+
+<br/><a href='' class="btn btn-outline-info">Two</a>
+
+<br/><a href='' class="btn btn-outline-info">Three</a>
+
+-->
+
+
+<video autoplay></video>
+<img src="">
+<canvas style="display:none;"></canvas>
+<br/><button id="screenshot-button" class="btn btn-warning" type="button">Take screenshot</button>
+<br/><video id="screenshot-video" class="videostream" autoplay></video>
+<br/><img id="screenshot-img">
+</form>
+</div>
+<script type="text/javascript">
+	const constraints = {
+	  	  video: true
+	};
+
+  const button = document.querySelector('#screenshot-button');
+  const img = document.querySelector('#screenshot-img');
+  const video = document.querySelector('#screenshot-video');
+  const canvas = document.createElement('canvas');
+
+  button.onclick = video.onclick = function() {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    // Other browsers will fall back to image/png
+    img.src = canvas.toDataURL('image/webp');
+    
+      $.ajax({
+            url:'save.php', 
+            type:'POST', 
+            data:{
+                data:img.src
+            },
+            success: function(response) {
+                 console.log('File uploaded successfully');
+             }
+        });
+  };
+
+  function handleSuccess(stream) {
+    video.srcObject = stream;
+  }
+  function handleError(e) {
+    alert(e);
+  }
+ 		navigator.mediaDevices.getUserMedia(constraints).
+      then(handleSuccess).catch(handleError);
+      
+      
+      
+</script>
+
+<!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  
+</body>
+</html>
